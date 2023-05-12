@@ -25,3 +25,14 @@ To clean up all cached artifacts, including terraform providers, run
 ```
 make clean-cache
 ```
+
+### Init terraform modules/providers
+
+To download used providers and make sure you have everything for `plan`/`apply` stages
+
+```
+make init
+```
+
+It runs `terraform get` in each directory under `stacks/` and `terragrunt run-all init` in `terraform/` dir, but only when there were changes in .tf files
+
