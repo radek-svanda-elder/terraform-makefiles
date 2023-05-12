@@ -11,3 +11,17 @@ When not sure run
 ```
 make help
 ```
+
+### Clean up
+
+To clean built artifacts (plans, etc.) run
+
+```
+make clean
+```
+
+To clean up all cached artifacts, including terraform providers, run
+
+```
+make clean-cache
+```
