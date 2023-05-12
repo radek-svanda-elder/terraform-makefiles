@@ -4,7 +4,7 @@
 CI ?= false
 
 # default environment
-env ?= prod
+env ?= env_not_set
 
 # Self documenting help section:
 help:  ## Show this help.
@@ -21,8 +21,14 @@ init:  ## init terraform modules
 	cd terraform && $(MAKE) init env=$(env)
 	cd stacks && $(MAKE) init stack=$(stack)
 
+.PHONY: plan
 plan:  ## perform terraform plan task and catch result to a file
 	cd terraform && $(MAKE) plan env=$(env) stack=$(stack)
 
+.PHONY: apply
 apply:  ## apply an already created plan
 	cd terraform && $(MAKE) apply env=$(env) stack=$(stack)
+
+.PHONY: secrets
+secrets:  ## edit secrets
+	cd terraform && $(MAKE) secrets env=$(env)

@@ -10,6 +10,7 @@ Set of Makefiles to further simplify use of [terragrunt-starter](https://github.
 - `clean-cache` - clean all downloaded modules and providers
 - `plan` - make terraform plan
 - `apply` - apply changes created by `plan` stage
+- `secrets` - edit secrets using [sops tool](https://github.com/mozilla/sops)
 
 ## Parameters
 
@@ -36,6 +37,14 @@ To also include changes for dependencies, eg. vpc stack
 ```
 make env=dev stack=database init plan apply deps=true
 ```
+
+### Edit secrets for live environment
+
+```
+make secrets env=live
+```
+
+You have to configure proper keys in `.terraform/.sops.yaml` file
 
 ## Installation to your project
 

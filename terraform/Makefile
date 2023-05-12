@@ -69,3 +69,11 @@ endif
 # run init only when modules changed in stacks (after running `make get` there)
 $(init_mark): $(modules)
 	terragrunt run-all init --terragrunt-working-dir "$(workdir)" $(tg_params) && touch $@
+
+.PHONY: secrets
+secrets: $(env)/secrets.yaml  ## edit secrets
+	sops ./$(env)/secrets.yaml
+
+$(env)/secrets.yaml:
+	echo 'foo: bar' > $@
+	sops --encrypt --config .sops.yaml --in-place $@
