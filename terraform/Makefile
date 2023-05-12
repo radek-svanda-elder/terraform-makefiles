@@ -12,6 +12,19 @@ init_mark := $(env)/.makefile_init
 workdir := ./$(env)
 tg_params :=
 plan_suffix := $(env)
+
+# when stack parameter is used
+ifdef stack
+	workdir := $(workdir)/$(stack)
+	plan_suffix := $(plan_suffix)-$(stack)
+# should dependencies be included?
+	ifdef deps
+		tg_params := --terragrunt-include-external-dependencies
+	else
+		tg_params := --terragrunt-ignore-external-dependencies
+	endif
+endif
+
 # name for the plan binary file
 plan_name := terraform-plan-$(plan_suffix).tfplan
 
@@ -42,6 +55,15 @@ ifeq ($(CI), true)
 	| tee ${text_plan_name}
 else
 	${GRUNT_PLAN} -input=false
+endif
+
+GRUNT_APPLY := terragrunt run-all apply --terragrunt-log-level info --terragrunt-working-dir "$(workdir)" $(tg_params) -input=false
+
+apply:  ## apply changes on all stacks
+ifeq ($(CI), true)
+	${GRUNT_APPLY} --terragrunt-non-interactive -auto-approve ${plan_name}
+else
+	${GRUNT_APPLY} ${plan_name}
 endif
 
 # run init only when modules changed in stacks (after running `make get` there)

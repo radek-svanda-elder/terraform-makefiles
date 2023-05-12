@@ -19,7 +19,10 @@ clean-cache:  ## clean all caches
 
 init:  ## init terraform modules
 	cd terraform && $(MAKE) init env=$(env)
-	cd stacks && $(MAKE) init
+	cd stacks && $(MAKE) init stack=$(stack)
 
 plan:  ## perform terraform plan task and catch result to a file
 	cd terraform && $(MAKE) plan env=$(env) stack=$(stack)
+
+apply:  ## apply an already created plan
+	cd terraform && $(MAKE) apply env=$(env) stack=$(stack)
