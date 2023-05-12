@@ -2,37 +2,22 @@
 
 Set of Makefiles to further simplify use of [terragrunt-starter](https://github.com/elderstudios/terragrunt-starter) based infra projects.
 
+## Targets
+
+- `help` - gives you help generated from Makefile source
+- `init` - downloads terraform modules and providers. Runs only after sources change
+- `clean` - cleans built artifacts (plain text plan, etc.)
+- `clean-cache` - clean all downloaded modules and providers
+- `plan` - make terraform plan
+
+## Parameters
+
+- `env` - environment to run in. Name of one of the directories under `terraform/`
+
 ## Usage
 
-### Get help
-
-When not sure run
+### Create plan for UAT environment
 
 ```
-make help
+make env=uat init plan
 ```
-
-### Clean up
-
-To clean built artifacts (plans, etc.) run
-
-```
-make clean
-```
-
-To clean up all cached artifacts, including terraform providers, run
-
-```
-make clean-cache
-```
-
-### Init terraform modules/providers
-
-To download used providers and make sure you have everything for `plan`/`apply` stages
-
-```
-make init
-```
-
-It runs `terraform get` in each directory under `stacks/` and `terragrunt run-all init` in `terraform/` dir, but only when there were changes in .tf files
-
