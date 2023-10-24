@@ -8,6 +8,9 @@ env ?= env_not_set
 text_plan_name := terraform-plan.txt
 # marker file for init phase
 init_mark := $(env)/.makefile_init
+# use global cache (change to true)
+# see https://github.com/gruntwork-io/terragrunt/issues/561#issuecomment-1032170292
+use_global_cache ?= false
 
 workdir := ./$(env)
 tg_params :=
@@ -37,7 +40,7 @@ help:  ## Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | awk '{ split($$0,a,/:.*##/); printf("%15s :%s\n",a[1],a[2]) }'
 
 clean-cache:  ## remove cached files (including providers)
-	find $(env) -type d -name ".terragrunt-cache" -print -prune -exec rm -rf {} \;
+	find . -type d -name ".terragrunt-cache" -print -prune -exec rm -rf {} \;
 
 clean:  ## clean caches
 	rm -f $(text_plan_name) $(init_mark)
@@ -45,9 +48,16 @@ clean:  ## clean caches
 init: $(init_mark)  ## run init on all stacks in the environment
 	$(info Terraform init done.)
 
-GRUNT_PLAN := terragrunt run-all plan --terragrunt-log-level info --terragrunt-working-dir "$(workdir)" $(tg_params) -lock=false -out=${plan_name}
+pwd := $(shell pwd)
+terragrunt_cache := $(pwd)/.terragrunt-cache
+plugin_cache := $(terragrunt_cache)/.plugins
+ifeq ($(use_global_cache), true)
+	tg_caches := TERRAGRUNT_DOWNLOAD=$(terragrunt_cache) TF_PLUGIN_CACHE_DIR=$(plugin_cache)
+endif
 
-plan: $(sources)  ## perform plan on all stacks
+GRUNT_PLAN := $(tg_caches) terragrunt run-all plan --terragrunt-log-level info --terragrunt-working-dir "$(workdir)" $(tg_params) -lock=false -out=${plan_name}
+
+plan: $(sources) $(plugin_cache)  ## perform plan on all stacks
 ifeq ($(CI), true)
 	set -o pipefail && \
 	${GRUNT_PLAN} -input=false -no-color -compact-warnings --terragrunt-non-interactive 2>&1 \
@@ -57,14 +67,17 @@ else
 	${GRUNT_PLAN} -input=false
 endif
 
-GRUNT_APPLY := terragrunt run-all apply --terragrunt-log-level info --terragrunt-working-dir "$(workdir)" $(tg_params) -input=false
+GRUNT_APPLY := $(tg_caches) terragrunt run-all apply --terragrunt-log-level info --terragrunt-working-dir "$(workdir)" $(tg_params) -input=false
 
-apply:  ## apply changes on all stacks
+apply: $(plugin_cache) ## apply changes on all stacks
 ifeq ($(CI), true)
 	${GRUNT_APPLY} --terragrunt-non-interactive -auto-approve ${plan_name}
 else
 	${GRUNT_APPLY} ${plan_name}
 endif
+
+$(plugin_cache):
+	mkdir -p $(plugin_cache)
 
 # run init only when modules changed in stacks (after running `make get` there)
 $(init_mark): $(modules)
